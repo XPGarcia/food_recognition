@@ -1,0 +1,11 @@
+# datasets
+/test
+/train
+/val
+
+# virtual environment
+/venv
+
+# IDE
+.idea
+__pycache__/
