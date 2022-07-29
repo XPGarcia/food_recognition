@@ -22,11 +22,11 @@ DATA_DIR = ""
 coco_train = COCO(DATA_DIR + "train/annotations.json")
 coco_val = COCO(DATA_DIR + "val/annotations.json")
 
-x_train_dir = os.path.join(DATA_DIR, 'train/images_resized_200')
-y_train_dir = os.path.join(DATA_DIR, 'train/masks_resized_200')
+x_train_dir = os.path.join(DATA_DIR, 'train/images_resized_224')
+y_train_dir = os.path.join(DATA_DIR, 'train/masks_resized_224')
 
-x_valid_dir = os.path.join(DATA_DIR, 'val/images_resized_200')
-y_valid_dir = os.path.join(DATA_DIR, 'val/masks_resized_200')
+x_valid_dir = os.path.join(DATA_DIR, 'val/images_resized_224')
+y_valid_dir = os.path.join(DATA_DIR, 'val/masks_resized_224')
 
 # Testing the get_training_augmentation
 # classes = list(map(map_cats, list(coco_train.cats.values())))
@@ -60,14 +60,14 @@ train_dataset = Dataset(
     x_train_dir,
     y_train_dir,
     classes=CLASSES,
-    augmentation=get_training_augmentation(),
-    preprocessing=get_preprocessing(preprocess_input),
+#    augmentation=get_training_augmentation(),
+#    preprocessing=get_preprocessing(preprocess_input),
 )
 valid_dataset = Dataset(
     x_valid_dir,
     y_valid_dir,
     classes=CLASSES,
-    preprocessing=get_preprocessing(preprocess_input),
+#    preprocessing=get_preprocessing(preprocess_input),
 )
 
 """
@@ -83,7 +83,7 @@ visualize(
 )
 """
 
-batch_size = 4
+batch_size = 16
 
 train_dataloader = Dataloder(train_dataset, batch_size=batch_size, shuffle=True)
 valid_dataloader = Dataloder(valid_dataset, batch_size=1, shuffle=False)
@@ -94,7 +94,6 @@ activation = 'sigmoid' if n_classes == 1 else 'softmax'
 model = sm.Unet(
     BACKBONE,
     encoder_weights='imagenet',
-    input_shape=(224, 224, 3),
     classes=n_classes,
     activation=activation,
     encoder_freeze=True
@@ -116,12 +115,12 @@ model.compile(
 
 # train model
 checkpoint = ModelCheckpoint(
-    "./food_recognition_model.keras",
+    "models/food_recognition_model.keras",
     save_weights_only=True,
     save_best_only=True,
     # mode='min'
 )
-csv_logger = CSVLogger("food_recognition_model.log", separator=";", append=False)
+csv_logger = CSVLogger("models/food_recognition_model.log", separator=";", append=False)
 reduceLR = ReduceLROnPlateau()
 
 epochs = 5

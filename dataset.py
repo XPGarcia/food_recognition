@@ -304,7 +304,7 @@ class Dataset:
      ):
         self.ids = os.listdir(images_dir)
         # segmentation
-        segment_size = 10000
+        segment_size = 1000
         if len(self.ids) < (segment+1)*segment_size:
             self.ids = self.ids[segment * segment_size:]
         else:
