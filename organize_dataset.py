@@ -1,9 +1,15 @@
 import os, shutil, pathlib, errno
-from pycocotools.coco import COCO
+
+
+def to_png(file_name):
+    file_name, _ = file_name.split(".")
+    return file_name + ".png"
 
 
 def make_subset(original_dir, new_base_dir, subset_name, folders, images, start_index, end_index):
     for category in folders:
+        if category == "masks":
+            images = list(map(to_png, images))
         src_dir = original_dir / category
         dir = new_base_dir / subset_name / category
         try:
@@ -13,24 +19,22 @@ def make_subset(original_dir, new_base_dir, subset_name, folders, images, start_
                 raise
             pass
         for i in range(start_index, end_index):
-            shutil.copyfile(src=src_dir / images[i]["file_name"], dst=dir / images[i]["file_name"])
-            os.remove(src_dir / images[i]["file_name"])
+            shutil.copyfile(src=src_dir / images[i], dst=dir / images[i])
+            # os.remove(src_dir / images[i]["file_name"])
 
 
-DATA_DIR = ""
+DATA_DIR = "dataset"
 
-coco_train = COCO(DATA_DIR + "train/annotations.json")
-coco_test = COCO(DATA_DIR + "test/annotations.json")
-coco_val = COCO(DATA_DIR + "val/annotations.json")
-
-original_dir = pathlib.Path(DATA_DIR + "train")
+original_dir = pathlib.Path(DATA_DIR)
 new_base_dir = pathlib.Path(DATA_DIR)
 
+images = os.listdir(DATA_DIR + "/images")
+
 folders = ["images", "masks"]
-total = len(coco_train.imgs)
+total = len(images)
+ival = int(total * 0.8)
 itest = int(total * 0.9)
 
-images = list(coco_train.imgs.values())
-
+make_subset(original_dir, new_base_dir, "train", folders, images, start_index=0, end_index=ival)
+make_subset(original_dir, new_base_dir, "val", folders, images, start_index=ival, end_index=itest)
 make_subset(original_dir, new_base_dir, "test", folders, images, start_index=itest, end_index=total)
-print("test subset created successfully!")

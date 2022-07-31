@@ -40,12 +40,11 @@ def get_training_augmentation():
 
         A.ShiftScaleRotate(scale_limit=0.5, rotate_limit=0, shift_limit=0.1, p=1, border_mode=0),
 
-        # 224
-        A.PadIfNeeded(min_height=196, min_width=196, always_apply=True, border_mode=0),
-        A.RandomCrop(height=196, width=196, always_apply=True),
+        A.PadIfNeeded(min_height=224, min_width=224, always_apply=True, border_mode=0),
+        A.RandomCrop(height=224, width=224, always_apply=True),
 
         A.GaussNoise(p=0.2),
-        # A.Perspective(p=0.5),
+        A.Perspective(p=0.5),
 
         A.OneOf(
             [
@@ -79,9 +78,8 @@ def get_training_augmentation():
 
 def get_validation_augmentation():
     """Add paddings to make image shape divisible by 32"""
-    # 224
     test_transform = [
-        A.PadIfNeeded(196, 196)
+        A.PadIfNeeded(224, 224)
     ]
     return A.Compose(test_transform)
 

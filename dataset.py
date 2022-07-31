@@ -1,7 +1,13 @@
+import matplotlib.pyplot as plt
 from tensorflow import keras
 import cv2
 import os
 import numpy as np
+
+
+def to_png(file_name):
+    file_name, _ = file_name.split(".")
+    return file_name + ".png"
 
 
 # classes for data loading and preprocessing
@@ -299,18 +305,11 @@ class Dataset:
         masks_dir,
         classes=None,
         augmentation=None,
-        preprocessing=None,
-        segment=0
+        preprocessing=None
      ):
         self.ids = os.listdir(images_dir)
-        # segmentation
-        segment_size = 1000
-        if len(self.ids) < (segment+1)*segment_size:
-            self.ids = self.ids[segment * segment_size:]
-        else:
-            self.ids = self.ids[segment * segment_size:(segment + 1) * segment_size]
         self.images_fps = [os.path.join(images_dir, image_id) for image_id in self.ids]
-        self.masks_fps = [os.path.join(masks_dir, image_id) for image_id in self.ids]
+        self.masks_fps = [os.path.join(masks_dir, image_id) for image_id in list(map(to_png, self.ids))]
 
         # convert str names to class values on masks
         self.class_values = [self.CLASSES.index(cls.lower()) for cls in classes]
@@ -323,6 +322,8 @@ class Dataset:
         image = cv2.imread(self.images_fps[i])
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         mask = cv2.imread(self.masks_fps[i], 0)
+
+        # print(np.unique(mask))
 
         # COLOR_BGR2RGB
         r, g, b = cv2.split(image)

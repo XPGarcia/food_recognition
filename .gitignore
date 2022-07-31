@@ -1,7 +1,5 @@
 # datasets
-/test
-/train
-/val
+/dataset
 
 # virtual environment
 /venv

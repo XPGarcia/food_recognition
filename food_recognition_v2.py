@@ -3,85 +3,62 @@ import os
 
 import matplotlib.pyplot as plt
 import segmentation_models as sm
-from pycocotools.coco import COCO
 
 from tensorflow import keras
 from keras.callbacks import ModelCheckpoint, CSVLogger, ReduceLROnPlateau
 
 from dataset import Dataset, Dataloder
 from utils import get_preprocessing, get_training_augmentation, map_cats, visualize
-from memory_required import get_model_memory_usage
 
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
 
 sm.set_framework("tf.keras")
 sm.framework()
 
-DATA_DIR = ""
+DATA_DIR = "dataset/"
 
-coco_train = COCO(DATA_DIR + "train/annotations.json")
-coco_val = COCO(DATA_DIR + "val/annotations.json")
+x_train_dir = os.path.join(DATA_DIR, 'train/images_resized_256/')
+y_train_dir = os.path.join(DATA_DIR, 'train/masks_resized_256/')
 
-x_train_dir = os.path.join(DATA_DIR, 'train/images_resized_224')
-y_train_dir = os.path.join(DATA_DIR, 'train/masks_resized_224')
-
-x_valid_dir = os.path.join(DATA_DIR, 'val/images_resized_224')
-y_valid_dir = os.path.join(DATA_DIR, 'val/masks_resized_224')
-
-# Testing the get_training_augmentation
-# classes = list(map(map_cats, list(coco_train.cats.values())))
-# dataset = Dataset(x_train_dir, y_train_dir, classes=classes, augmentation=get_training_augmentation())
-# dataset = Dataset(x_train_dir, y_train_dir, classes=classes)
-
-# for i in range(3):
-#    image, mask = dataset[i]
-#    visualize(image=image,
-#              water_mask=mask[..., 0].squeeze(),
-#              pear_mask=mask[..., 1].squeeze(),
-#              egg_mask=mask[..., 2].squeeze(),
-#              grapes_mask=mask[..., 3].squeeze(),
-#              butter_mask=mask[..., 4].squeeze(),
-#              bread_white_mask=mask[..., 5].squeeze(),
-#              jam_mask=mask[..., 6].squeeze(),
-#              bread_whole_wheat_mask=mask[..., 7].squeeze(),
-#              apple_mask=mask[..., 8].squeeze(),
-#              Total=mask[..., :-1].sum(axis=2).squeeze(),
-#              )
+x_valid_dir = os.path.join(DATA_DIR, 'val/images_resized_256/')
+y_valid_dir = os.path.join(DATA_DIR, 'val/masks_resized_256/')
 
 # Define preprocessor
 
-BACKBONE = "vgg16"  # vgg16, 'resnet18', inceptionv3,  resnet50
+BACKBONE = "resnet34"  # vgg16, 'resnet18', inceptionv3,  resnet50
 preprocess_input = sm.get_preprocessing(BACKBONE)
 
 # Define classes
-CLASSES = list(map(map_cats, list(coco_train.cats.values())))
+CLASSES = ["water", "onion", "avocado", "rice", "fish", "bread"]
 
 train_dataset = Dataset(
     x_train_dir,
     y_train_dir,
     classes=CLASSES,
-#    augmentation=get_training_augmentation(),
-#    preprocessing=get_preprocessing(preprocess_input),
+    augmentation=get_training_augmentation(),
+    preprocessing=get_preprocessing(preprocess_input),
 )
 valid_dataset = Dataset(
     x_valid_dir,
     y_valid_dir,
     classes=CLASSES,
-#    preprocessing=get_preprocessing(preprocess_input),
+    preprocessing=get_preprocessing(preprocess_input),
 )
 
-"""
-image, mask = train_dataset[6]
-
-print(mask.shape)
-visualize(
-    image=image,
-    water_mask=mask[..., 0].squeeze(),
-    banana_mask=mask[..., 23].squeeze(),
-    background_mask=mask[..., 273].squeeze(),
-    Total=mask[..., :-1].sum(axis=2).squeeze(),
-)
-"""
+# Testing the get_training_augmentation
+# for i in range(3):
+#    image, mask = dataset[i]
+#    visualize(
+#     image=image,
+#     water_mask=mask[..., 0].squeeze(),
+#     onion_mask=mask[..., 1].squeeze(),
+#     avocado_mask=mask[..., 2].squeeze(),
+#     rice_mask=mask[..., 3].squeeze(),
+#     fish_mask=mask[..., 4].squeeze(),
+#     bread_mask=mask[..., 5].squeeze(),
+#     background_mask=mask[..., 6].squeeze(),
+#     Total=mask[..., :-1].sum(axis=2).squeeze(),
+#    )
 
 batch_size = 16
 
@@ -100,8 +77,6 @@ model = sm.Unet(
 )
 model.summary()
 
-get_model_memory_usage(batch_size, model)
-
 # utils.plot_model(model, show_shapes=True)
 
 model.compile(
@@ -115,15 +90,15 @@ model.compile(
 
 # train model
 checkpoint = ModelCheckpoint(
-    "models/food_recognition_model.keras",
+    "models/food_recognition_model_resnet34.keras",
     save_weights_only=True,
     save_best_only=True,
     # mode='min'
 )
-csv_logger = CSVLogger("models/food_recognition_model.log", separator=";", append=False)
+csv_logger = CSVLogger("models/food_recognition_model_resnet34.log", separator=";", append=False)
 reduceLR = ReduceLROnPlateau()
 
-epochs = 5
+epochs = 100
 history = model.fit(
     train_dataloader,
     steps_per_epoch=len(train_dataloader),
