@@ -8,7 +8,7 @@ from tensorflow import keras
 from keras.callbacks import ModelCheckpoint, CSVLogger, ReduceLROnPlateau
 
 from dataset import Dataset, Dataloder
-from utils import get_preprocessing, get_training_augmentation, map_cats, visualize
+from utils import get_preprocessing, get_training_augmentation, visualize
 
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
 
@@ -35,7 +35,7 @@ train_dataset = Dataset(
     x_train_dir,
     y_train_dir,
     classes=CLASSES,
-    augmentation=get_training_augmentation(),
+#    augmentation=get_training_augmentation(),
     preprocessing=get_preprocessing(preprocess_input),
 )
 valid_dataset = Dataset(
@@ -45,20 +45,21 @@ valid_dataset = Dataset(
     preprocessing=get_preprocessing(preprocess_input),
 )
 
+"""
 # Testing the get_training_augmentation
-# for i in range(3):
-#    image, mask = dataset[i]
-#    visualize(
-#     image=image,
-#     water_mask=mask[..., 0].squeeze(),
-#     onion_mask=mask[..., 1].squeeze(),
-#     avocado_mask=mask[..., 2].squeeze(),
-#     rice_mask=mask[..., 3].squeeze(),
-#     fish_mask=mask[..., 4].squeeze(),
-#     bread_mask=mask[..., 5].squeeze(),
-#     background_mask=mask[..., 6].squeeze(),
-#     Total=mask[..., :-1].sum(axis=2).squeeze(),
-#    )
+image, mask = train_dataset[1]
+visualize(
+    image=image,
+    water_mask=mask[..., 0].squeeze(),
+    onion_mask=mask[..., 1].squeeze(),
+    avocado_mask=mask[..., 2].squeeze(),
+    rice_mask=mask[..., 3].squeeze(),
+    fish_mask=mask[..., 4].squeeze(),
+    bread_mask=mask[..., 5].squeeze(),
+    background_mask=mask[..., 6].squeeze(),
+    Total=mask[..., :-1].sum(axis=2).squeeze(),
+)
+"""
 
 batch_size = 16
 
@@ -90,15 +91,15 @@ model.compile(
 
 # train model
 checkpoint = ModelCheckpoint(
-    "models/food_recognition_model_resnet34.keras",
+    "models/food_recognition_model_resnet34_v2.keras",
     save_weights_only=True,
     save_best_only=True,
     # mode='min'
 )
-csv_logger = CSVLogger("models/food_recognition_model_resnet34.log", separator=";", append=False)
+csv_logger = CSVLogger("models/food_recognition_model_resnet34_v2.log", separator=";", append=False)
 reduceLR = ReduceLROnPlateau()
 
-epochs = 100
+epochs = 10
 history = model.fit(
     train_dataloader,
     steps_per_epoch=len(train_dataloader),

@@ -3,11 +3,7 @@ from tensorflow import keras
 import numpy as np
 import segmentation_models as sm
 from dataset import Dataset, Dataloder
-from utils import get_preprocessing
-import matplotlib.pyplot as plt
-import numpy
-from sklearn import metrics
-
+from utils import get_preprocessing, visualize, denormalize
 
 DATA_DIR = "dataset/"
 
@@ -39,7 +35,7 @@ model.compile(
 )
 
 # load best weights
-model.load_weights('models/food_recognition_model_resnet34.keras')
+model.load_weights('models/food_recognition_model_resnet34_v2.keras')
 
 scores = model.evaluate(test_dataloader)
 print("Loss: {:.5}".format(scores[0]))
@@ -51,20 +47,26 @@ n = len(test_dataset)
 ids = np.random.choice(np.arange(len(test_dataset)), size=n)
 ids = np.arange(n)
 
-actual = []
-predicted = []
-
 for i in ids:
     image, gt_mask = test_dataset[i]
     image = np.expand_dims(image, axis=0)
     pr_mask = model.predict(image)
     pr_mask = np.squeeze(pr_mask, axis=0)
 
+    #visualize(
+    #    image=denormalize(image.squeeze()),
+    #    gt_mask=gt_mask[..., :-1].sum(axis=2).squeeze(),
+    #    pr_mask=pr_mask[..., :-1].sum(axis=2).squeeze(),
+    #)
+
     visualize(
         image=denormalize(image.squeeze()),
-        gt_mask=gt_mask[..., :-1].sum(axis=2).squeeze(),
-        pr_mask=pr_mask[..., :-1].sum(axis=2).squeeze(),
+        water_mask=pr_mask[..., 0].squeeze(),
+        onion_mask=pr_mask[..., 1].squeeze(),
+        avocado_mask=pr_mask[..., 2].squeeze(),
+        rice_mask=pr_mask[..., 3].squeeze(),
+        fish_mask=pr_mask[..., 4].squeeze(),
+        bread_mask=pr_mask[..., 5].squeeze(),
+        background_mask=pr_mask[..., 6].squeeze(),
+        Total=pr_mask[..., :-1].sum(axis=2).squeeze(),
     )
-
-#actual = numpy.random.binomial(1,.9,size = 1000)
-#predicted = numpy.random.binomial(1,.9,size = 1000)
